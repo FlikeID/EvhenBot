@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 import requests
 import json
 
-DEBUG = False
+DEBUG = True
 
 
 class Actions:
@@ -98,7 +98,8 @@ class TGBot:
         self.set_update_id(response)
 
         if self.debug:
-            print(r"Debug | Poll: ", response)
+            if len(response)>0:
+                print(r"Debug | Poll: ", response)
         return response
 
     def get_events(self, pool):
@@ -129,7 +130,7 @@ class TGBot:
             elif 'channel_post' in result.keys():
                 actions = result["channel_post"]
                 response['actions'].append(
-                    {'action': 'channel_post', 'msg_id': actions['message_id'], 'text': actions['text'],
+                    {'action': 'channel_post', 'msg_id': actions['message_id'],
                      'chat_id': actions["chat"]['id']})
 
         return response
@@ -160,16 +161,18 @@ class EvgenyBot(TGBot):
         super().__init__(token, bot_id, debug)
 
     def checkSubscribe(self, user_id, chat_id):
-        response = self.method('getChatMember', user_id=user_id, raw=True, chat_id=chat_id)
-        if not response['ok']:
-            if response['error_code'] in 403:
-                raise ExceptionTGMSG(response['description'],
-                                     response['error_code'])
-            if response['error_code'] in 400:
+        try:
+            response = self.method('getChatMember', user_id=user_id, raw=True, chat_id=chat_id)
+            if not response['ok']:
+                if response['error_code'] in 403:
+                    raise ExceptionTGMSG(response['description'],
+                                         response['error_code'])
+                if response['error_code'] in 400:
+                    return False
+            if response['result']['status'] == 'left':
                 return False
-        if response['result']['status'] == 'left':
-            return False
-
+        except:
+            return True
         return True
 
     def get_channelButton(self, database, from_id):
@@ -244,11 +247,11 @@ def admin_code(database, code, chat_id, user_id, name=False):
 
 with open('database.json', 'r', encoding='utf-8') as f:  # открыли файл с данными
     database = json.load(f)  # загнали все, что получилось в переменную
-BOT = EvgenyBot('5169189756:AAG83jWE7euED8fABalO_aky5HZJXiW5D0k', 5169189756, DEBUG)
+BOT = EvgenyBot('5071829934:AAH1UHpwUb4D6oGRkMz1eYFMfHS1udfA3sc', 5169189756, DEBUG)
 Actions = Actions()
 
 while True:
-    try:
+
         events = BOT.get_events(BOT.get_pool())
         for msg in events['messages']:
             if str(msg['from_id']) in database['admins'].keys():
@@ -692,6 +695,3 @@ while True:
                            reply_markup=reply_markup)
             except:
                 continue
-
-    except Exception as exc:
-        print(exc)
