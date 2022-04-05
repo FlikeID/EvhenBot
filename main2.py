@@ -1,10 +1,14 @@
 import random
 from difflib import SequenceMatcher
-
+import argparse
 import requests
 import json
 
 DEBUG = True
+
+parser = argparse.ArgumentParser(description='Главный процесс бота')
+
+parser.add_argument("--token", required=True, type=str, help="Токен бота")
 
 
 class Actions:
@@ -57,7 +61,7 @@ class ExceptionTGMSG(Exception):
 
 class TGBot:
 
-    def __init__(self, token, bot_id, debug=False):
+    def __init__(self, token, debug=False):
 
         self.debug = debug
         self.token = token
@@ -157,8 +161,8 @@ class TGBot:
 
 class EvgenyBot(TGBot):
 
-    def __init__(self, token, bot_id, debug=False):
-        super().__init__(token, bot_id, debug)
+    def __init__(self, token, debug=False):
+        super().__init__(token, debug)
 
     def checkSubscribe(self, user_id, chat_id):
         try:
@@ -172,6 +176,7 @@ class EvgenyBot(TGBot):
             if response['result']['status'] == 'left':
                 return False
         except:
+            print("Suka")
             return True
         return True
 
@@ -247,11 +252,11 @@ def admin_code(database, code, chat_id, user_id, name=False):
 
 with open('database.json', 'r', encoding='utf-8') as f:  # открыли файл с данными
     database = json.load(f)  # загнали все, что получилось в переменную
-BOT = EvgenyBot('5071829934:AAH1UHpwUb4D6oGRkMz1eYFMfHS1udfA3sc', 5169189756, DEBUG)
+BOT = EvgenyBot('5169189756:AAG83jWE7euED8fABalO_aky5HZJXiW5D0k', DEBUG)
 Actions = Actions()
 
 while True:
-
+    try:
         events = BOT.get_events(BOT.get_pool())
         for msg in events['messages']:
             if str(msg['from_id']) in database['admins'].keys():
@@ -477,9 +482,9 @@ while True:
                             ]
 
                     elif act['data'][0] == 'd':
-                        text = f"[Админ панель]\nУдалние канала: \n\n{channel['title']}\n\n"
+                        text = f"[Админ панель]\n❌ Удаление канала ❌"
                         if status:
-                            text += f"Чтобы ❌Удалить канал❌ \n\n{channel['title']} удалитите @{BOT.nick} из пользователей этого канала\nВы можете заблокировать канал, но это необратимое действие (вернуть бота в каннал не получиться)\n\nСсылка: {channel['invite_link'].replace('+', '%2b')}\n\n"
+                            text += f"\n\n{channel['title']}\n\n❗Чтобы удалить канал {channel['title']} удалитите @{BOT.nick} из пользователей этого канала\n\n❗❗Вы можете заблокировать канал, но это необратимое действие (вернуть бота в каннал не получиться)\n\nСсылка: {channel['invite_link'].replace('+', '%2b')}\n\n"
                             buttons = [[{"text": 'Заблокировать канал', "callback_data": f"chnMng;b:{channel_id}"}],
                                        [{"text": 'Назад', "callback_data": f"panel;o:0"}]]
                         else:
@@ -489,10 +494,10 @@ while True:
                             ]
 
                     elif act['data'][0] in ['b', 'e']:
-                        text = f"[Админ панель]\nБлокировка канала: \n\n{channel['title']}\n\n"
+                        text = f"[Админ панель]\nБлокировка канала: "
                         if status:
                             if act['data'][0] == 'e':
-                                text += f"Канал \n\n{channel['title']} был удалён\n\nСсылка: {channel['invite_link'].replace('+', '%2b')}\n\n"
+                                text += f"\n\n{channel['title']}\n\nКанал \n\n{channel['title']} был удалён\n\nСсылка: {channel['invite_link'].replace('+', '%2b')}\n\n"
                             else:
                                 text += f"Канал \n\n{channel['title']} был заблокирован\nВы больше не сможете вернуть бота в него\n\nСсылка: {channel['invite_link'].replace('+', '%2b')}\n\n"
                                 database['blackList'].append(channel_id)
@@ -543,9 +548,9 @@ while True:
                             ]
 
                     elif act['data'][0] == 't':
-                        text = f"[Админ панель]\n⚙️Управление каналом⚙️ \n\n{channel['title']}"
+                        text = f"[Админ панель]\n⚙️Управление каналом⚙️ "
                         if status:
-                            text += f"\n\nПереходы: {channel['uses']['current']} (введите новое значение) / {channel['uses']['max']}\n\nВведите новое значение текущих переходов: "
+                            text += f"\n\n{channel['title']}\n\nПереходы: {channel['uses']['current']} (введите новое значение) / {channel['uses']['max']}\n\nВведите новое значение текущих переходов: "
                             database['sessions'][str(act['from_id'])] = {'chat_id': act['chat_id'], 'msg_id': act['msg_id'],
                                                                     'data': {'action': 'change_current_limit',
                                                                              'channel_id': channel_id}}
@@ -558,9 +563,9 @@ while True:
                                 [{"text": 'Назад', "callback_data": f"chnMng;o:0"}],
                             ]
                     elif act['data'][0] == 'x':
-                        text = f"[Админ панель]\n⚙️Управление каналом⚙️ \n\n{channel['title']}"
+                        text = f"[Админ панель]\n⚙️Управление каналом⚙️ "
                         if status:
-                            text += f"\n\nПереходы: {channel['uses']['current']} / {channel['uses']['max']} (введите новое значение)\n\nВведите новое значение максимальных переходов: "
+                            text += f"\n\n{channel['title']}\n\nПереходы: {channel['uses']['current']} / {channel['uses']['max']} (введите новое значение)\n\nВведите новое значение максимальных переходов: "
                             database['sessions'][str(act['from_id'])] = {'chat_id': act['chat_id'], 'msg_id': act['msg_id'],
                                                                     'data': {'action': 'change_max_limit',
                                                                              'channel_id': channel_id}}
@@ -575,9 +580,9 @@ while True:
                             ]
 
                     elif act['data'][0] == 'i':
-                        text = f"[Админ панель]\n⚙️Управление каналом⚙️ \n\n{channel['title']}"
+                        text = f"[Админ панель]\n⚙️Управление каналом⚙️ "
                         if status:
-                            text += f"\n\n🛠Изменение ссылки🛠\n📍Текущая ссылка: {channel['invite_link'].replace('+', '%2b')}\n\nВведите новую ссылку👇"
+                            text += f"\n\n{channel['title']}\n\n🛠Изменение ссылки🛠\n📍Текущая ссылка: {channel['invite_link'].replace('+', '%2b')}\n\nВведите новую ссылку👇"
                             database['sessions'][str(act['from_id'])] = {'chat_id': act['chat_id'], 'msg_id': act['msg_id'],
                                                                     'data': {'action': 'change_invite_link',
                                                                              'channel_id': channel_id}}
@@ -591,11 +596,11 @@ while True:
                             ]
 
                     elif act['data'][0] == 'q':
-                        text = f"[Админ панель]\n⚙️Управление каналом⚙️ \n\n{channel['title']}"
+                        text = f"[Админ панель]\n⚙️Управление каналом⚙️ "
                         if act["from_id"] in database['sessions'].keys():
                             database['sessions'].pop(str(act["from_id"]), None)
                             if status:
-                                text += f"⚙️Управление каналом⚙️ \n\n{channel['title']}\n\nПереходы: {channel['uses']['current']}/ {channel['uses']['max']}\nСсылка: {channel['invite_link'].replace('+', '%2b')}\n\n"
+                                text += f"\n\n{channel['title']}⚙️Управление каналом⚙️ \n\n{channel['title']}\n\nПереходы: {channel['uses']['current']}/ {channel['uses']['max']}\nСсылка: {channel['invite_link'].replace('+', '%2b')}\n\n"
                                 buttons = mainButtons(channel_id)
                             else:
                                 text += '\nКанал не найден'
@@ -695,3 +700,6 @@ while True:
                            reply_markup=reply_markup)
             except:
                 continue
+    except BaseException as exc:
+        print(exc)
+        continue
