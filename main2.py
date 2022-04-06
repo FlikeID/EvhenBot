@@ -692,7 +692,6 @@ while True:
                             ]
 
             else:
-                BOT.method('deleteMessage', chat_id=act['chat_id'], message_id=act['msg_id'])
                 continue
 
             reply_markup = json.dumps({"inline_keyboard": buttons})
