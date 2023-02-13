@@ -253,7 +253,7 @@ def admin_code(database, code, chat_id, user_id, name=False):
 
 with open('database.json', 'r', encoding='utf-8') as f:  # открыли файл с данными
     database = json.load(f)  # загнали все, что получилось в переменную
-#BOT = EvgenyBot('5169189756:AAG83jWE7euED8fABalO_aky5HZJXiW5D0k', DEBUG)
+    
 BOT = EvgenyBot(TOKEN, DEBUG)
 Actions = Actions()
 
